@@ -1,35 +1,25 @@
+import type {
+  CellDetailDto,
+  CellFiltersDto,
+  CellSummaryDto,
+  ComplianceDataDto,
+  MediaItemDto,
+  SpeciesProfileDto,
+} from "@global-bird/contracts";
 import {
   complianceByDownloadKey,
   mediaItems,
   mockCells,
   speciesProfiles,
 } from "./mock-data";
-import type {
-  CellDetail,
-  CellFilters,
-  CellSummary,
-  ComplianceData,
-  MediaItem,
-  SpeciesProfile,
-} from "./types";
 
-function wait(ms: number) {
-  return new Promise((resolve) => {
-    window.setTimeout(resolve, ms);
-  });
-}
-
-function matchesYearPreset(year: number, preset: CellFilters["yearPreset"]) {
+function matchesYearPreset(year: number, preset: CellFiltersDto["yearPreset"]) {
   if (preset === "all") return true;
   if (preset === "recent") return year >= 2024;
   return year <= 2023;
 }
 
-function cellHasMedia(cell: CellDetail) {
-  return cell.occurrences.some((item) => item.hasMedia);
-}
-
-function filterOccurrences(cell: CellDetail, filters: CellFilters) {
+function filterOccurrences(cell: CellDetailDto, filters: CellFiltersDto) {
   return cell.occurrences.filter((item) => {
     if (!matchesYearPreset(item.year, filters.yearPreset)) return false;
     if (filters.requireMedia && !item.hasMedia) return false;
@@ -37,7 +27,10 @@ function filterOccurrences(cell: CellDetail, filters: CellFilters) {
   });
 }
 
-function toSummary(cell: CellDetail, filters: CellFilters): CellSummary | null {
+function toSummary(
+  cell: CellDetailDto,
+  filters: CellFiltersDto,
+): CellSummaryDto | null {
   const occurrences = filterOccurrences(cell, filters);
   if (occurrences.length === 0) return null;
 
@@ -61,19 +54,16 @@ function toSummary(cell: CellDetail, filters: CellFilters): CellSummary | null {
   };
 }
 
-export async function listCells(filters: CellFilters): Promise<CellSummary[]> {
-  await wait(180);
+export function listCells(filters: CellFiltersDto): CellSummaryDto[] {
   return mockCells
-    .filter((cell) => !filters.requireMedia || cellHasMedia(cell))
     .map((cell) => toSummary(cell, filters))
-    .filter((cell): cell is CellSummary => cell !== null);
+    .filter((cell): cell is CellSummaryDto => cell !== null);
 }
 
-export async function getCellDetail(
+export function getCellDetail(
   h3: string,
-  filters: CellFilters,
-): Promise<CellDetail | null> {
-  await wait(140);
+  filters: CellFiltersDto,
+): CellDetailDto | null {
   const cell = mockCells.find((item) => item.h3 === h3);
   if (!cell) return null;
 
@@ -87,24 +77,18 @@ export async function getCellDetail(
   };
 }
 
-export async function getSpeciesProfile(
+export function getSpeciesProfile(
   speciesKey: number,
-): Promise<SpeciesProfile | null> {
-  await wait(100);
+): SpeciesProfileDto | null {
   return speciesProfiles.find((item) => item.speciesKey === speciesKey) ?? null;
 }
 
-export async function getSpeciesMedia(
-  speciesKey: number,
-): Promise<MediaItem[]> {
-  await wait(120);
+export function listSpeciesMedia(speciesKey: number): MediaItemDto[] {
   return mediaItems.filter((item) => item.speciesKey === speciesKey);
 }
 
-export async function getCompliance(
+export function getCompliance(
   downloadKey: string,
-): Promise<ComplianceData | null> {
-  await wait(80);
+): ComplianceDataDto | null {
   return complianceByDownloadKey[downloadKey] ?? null;
 }
-

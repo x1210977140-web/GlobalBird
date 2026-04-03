@@ -1,9 +1,9 @@
 import type {
-  CellDetail,
-  ComplianceData,
-  MediaItem,
-  SpeciesProfile,
-} from "./types";
+  CellDetailDto as CellDetail,
+  ComplianceDataDto as ComplianceData,
+  MediaItemDto as MediaItem,
+  SpeciesProfileDto as SpeciesProfile,
+} from "@global-bird/contracts";
 
 export const speciesProfiles: SpeciesProfile[] = [
   {
@@ -546,4 +546,3 @@ export const mockCells: CellDetail[] = [
     ],
   },
 ];
-

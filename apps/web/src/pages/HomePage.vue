@@ -2,12 +2,12 @@
   <main class="page">
     <section class="hero-card">
       <div class="hero-copy">
-        <p class="eyebrow">GlobalBird / 单机试运行版</p>
+        <p class="eyebrow">GlobalBird / 本地联调版</p>
         <h1>海量鸟类分布的前端主链路演示</h1>
         <p class="hero-summary">
-          这是一版不依赖后端的前端单机实现：用本地 mock API 模拟
+          这是一版通过本地 Fastify mock API 联调的演示实现：当前已经接通
           `/api/v1/cells`、`/occurrences`、`/species`、`/media` 和
-          `compliance`，先把交互、视图分层和面板闭环跑通。
+          `compliance`，先把 HTTP 契约、交互和面板闭环跑通。
         </p>
       </div>
 
@@ -54,6 +54,11 @@
       </div>
     </section>
 
+    <section v-if="sceneError" class="status-card error">
+      <strong>视野数据加载失败</strong>
+      <p>{{ sceneError }}</p>
+    </section>
+
     <section class="workspace">
       <section class="scene-panel">
         <GlobeCanvas
@@ -86,15 +91,15 @@ import {
   getSpeciesMedia,
   getSpeciesProfile,
   listCells,
-} from "../core/mock-api";
+} from "../core/api-client";
 import type {
-  CellDetail,
-  CellFilters,
-  CellSummary,
-  ComplianceData,
-  MediaItem,
-  SpeciesProfile,
-} from "../core/types";
+  CellDetailDto as CellDetail,
+  CellFiltersDto as CellFilters,
+  CellSummaryDto as CellSummary,
+  ComplianceDataDto as ComplianceData,
+  MediaItemDto as MediaItem,
+  SpeciesProfileDto as SpeciesProfile,
+} from "@global-bird/contracts";
 
 const filters = reactive<CellFilters>({
   yearPreset: "all",
@@ -102,6 +107,7 @@ const filters = reactive<CellFilters>({
 });
 
 const loading = ref(false);
+const sceneError = ref<string | null>(null);
 const cells = ref<CellSummary[]>([]);
 const selectedH3 = ref<string | null>(null);
 const selectedCellDetail = ref<CellDetail | null>(null);
@@ -120,27 +126,41 @@ const totalSpecies = computed(() => {
 
 async function refreshScene() {
   loading.value = true;
-  const nextCells = await listCells(filters);
-  cells.value = nextCells;
+  sceneError.value = null;
 
-  const fallbackH3 = nextCells[0]?.h3 ?? null;
-  const keepCurrent = nextCells.some((item) => item.h3 === selectedH3.value);
-  selectedH3.value = keepCurrent ? selectedH3.value : fallbackH3;
+  try {
+    const nextCells = await listCells(filters);
+    cells.value = nextCells;
 
-  if (selectedH3.value) {
-    await loadCell(selectedH3.value);
-  } else {
+    const fallbackH3 = nextCells[0]?.h3 ?? null;
+    const keepCurrent = nextCells.some((item) => item.h3 === selectedH3.value);
+    selectedH3.value = keepCurrent ? selectedH3.value : fallbackH3;
+
+    if (selectedH3.value) {
+      await loadCell(selectedH3.value);
+    } else {
+      selectedCellDetail.value = null;
+      selectedSpeciesKey.value = null;
+      selectedSpecies.value = null;
+      selectedMedia.value = [];
+      selectedCompliance.value = null;
+    }
+  } catch {
+    sceneError.value = "请确认本地 API 服务已启动，并且 `GET /api/v1/cells` 可以正常访问。";
+    cells.value = [];
+    selectedH3.value = null;
     selectedCellDetail.value = null;
+    selectedSpeciesKey.value = null;
     selectedSpecies.value = null;
     selectedMedia.value = [];
     selectedCompliance.value = null;
+  } finally {
+    loading.value = false;
   }
-
-  loading.value = false;
 }
 
 async function loadCell(h3: string) {
-  const detail = await getCellDetail(h3, filters);
+  const detail = await getCellDetail(h3, filters).catch(() => null);
   selectedCellDetail.value = detail;
   selectedH3.value = detail?.h3 ?? null;
 
@@ -152,7 +172,9 @@ async function loadCell(h3: string) {
     return;
   }
 
-  selectedCompliance.value = await getCompliance(detail.downloadKey);
+  selectedCompliance.value = await getCompliance(detail.downloadKey).catch(
+    () => null,
+  );
 
   const firstSpeciesKey =
     selectedSpeciesKey.value &&
@@ -171,12 +193,12 @@ async function loadCell(h3: string) {
 
 async function loadSpecies(speciesKey: number) {
   selectedSpeciesKey.value = speciesKey;
-  const [profile, media] = await Promise.all([
+  const [profile, media] = await Promise.allSettled([
     getSpeciesProfile(speciesKey),
     getSpeciesMedia(speciesKey),
   ]);
-  selectedSpecies.value = profile;
-  selectedMedia.value = media;
+  selectedSpecies.value = profile.status === "fulfilled" ? profile.value : null;
+  selectedMedia.value = media.status === "fulfilled" ? media.value : [];
 }
 
 async function handleSelectCell(h3: string) {
@@ -203,7 +225,8 @@ onMounted(async () => {
 }
 
 .hero-card,
-.toolbar-card {
+.toolbar-card,
+.status-card {
   display: grid;
   gap: 18px;
   padding: 24px;
@@ -212,6 +235,20 @@ onMounted(async () => {
   background: var(--bg-card);
   box-shadow: var(--shadow);
   backdrop-filter: blur(18px);
+}
+
+.status-card.error {
+  border-color: rgba(190, 24, 93, 0.16);
+  background: rgba(255, 244, 246, 0.92);
+}
+
+.status-card p,
+.status-card strong {
+  margin: 0;
+}
+
+.status-card p {
+  color: #9f1239;
 }
 
 .hero-card {
@@ -349,4 +386,3 @@ onMounted(async () => {
   }
 }
 </style>
-

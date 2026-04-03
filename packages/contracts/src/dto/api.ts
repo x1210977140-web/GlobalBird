@@ -1,13 +1,21 @@
+export interface HealthDto {
+  status: "ok";
+  appName: string;
+}
+
+export const cellYearPresets = ["all", "recent", "classic"] as const;
+
+export type CellYearPreset = (typeof cellYearPresets)[number];
 export type MediaType = "StillImage";
 
-export interface TopSpecies {
+export interface TopSpeciesDto {
   speciesKey: number;
   scientificName: string;
   commonName: string;
   count: number;
 }
 
-export interface CellSummary {
+export interface CellSummaryDto {
   h3: string;
   center: {
     lon: number;
@@ -16,10 +24,10 @@ export interface CellSummary {
   region: string;
   occurrenceCount: number;
   speciesCount: number;
-  topSpecies: TopSpecies[];
+  topSpecies: TopSpeciesDto[];
 }
 
-export interface OccurrenceRecord {
+export interface OccurrenceRecordDto {
   gbifId: number;
   speciesKey: number;
   commonName: string;
@@ -35,13 +43,13 @@ export interface OccurrenceRecord {
   hasMedia: boolean;
 }
 
-export interface CellDetail extends CellSummary {
+export interface CellDetailDto extends CellSummaryDto {
   summary: string;
   downloadKey: string;
-  occurrences: OccurrenceRecord[];
+  occurrences: OccurrenceRecordDto[];
 }
 
-export interface SpeciesProfile {
+export interface SpeciesProfileDto {
   speciesKey: number;
   commonName: string;
   scientificName: string;
@@ -50,7 +58,7 @@ export interface SpeciesProfile {
   note: string;
 }
 
-export interface MediaItem {
+export interface MediaItemDto {
   mediaId: number;
   speciesKey: number;
   title: string;
@@ -73,15 +81,14 @@ export interface MediaItem {
   };
 }
 
-export interface ComplianceData {
+export interface ComplianceDataDto {
   downloadKey: string;
   doi: string;
   citation: string;
   rightsSummary: string;
 }
 
-export interface CellFilters {
-  yearPreset: "all" | "recent" | "classic";
+export interface CellFiltersDto {
+  yearPreset: CellYearPreset;
   requireMedia: boolean;
 }
-

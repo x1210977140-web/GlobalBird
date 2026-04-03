@@ -1,9 +1,18 @@
-import { healthRoute } from "./routes/health";
+import { buildApp } from "./app/build-app";
+import { env } from "./app/env";
 
-function bootstrap() {
-  console.log("API skeleton ready");
-  console.log(`Registered route: ${healthRoute.method} ${healthRoute.url}`);
+async function bootstrap() {
+  const app = buildApp();
+
+  try {
+    await app.listen({
+      host: env.host,
+      port: env.port,
+    });
+  } catch (error) {
+    app.log.error(error);
+    process.exit(1);
+  }
 }
 
-bootstrap();
-
+void bootstrap();

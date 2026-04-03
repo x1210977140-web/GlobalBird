@@ -6,3 +6,9 @@ export const apiErrors = {
 } as const;
 
 export type ApiErrorCode = (typeof apiErrors)[keyof typeof apiErrors];
+
+export interface ApiErrorDto {
+  code: ApiErrorCode;
+  message: string;
+  requestId: string;
+}

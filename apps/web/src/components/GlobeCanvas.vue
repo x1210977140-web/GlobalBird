@@ -20,7 +20,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import type { CellSummary } from "../core/types";
+import type { CellSummaryDto as CellSummary } from "@global-bird/contracts";
 
 const props = defineProps<{
   cells: CellSummary[];
@@ -234,7 +234,7 @@ function draw() {
 
   context.fillStyle = "rgba(255, 255, 255, 0.9)";
   context.font = "600 14px PingFang SC, sans-serif";
-  context.fillText("GlobalBird 单机演示", 20, 28);
+  context.fillText("GlobalBird 本地联调版", 20, 28);
 }
 
 function findCellAtPoint(clientX: number, clientY: number) {

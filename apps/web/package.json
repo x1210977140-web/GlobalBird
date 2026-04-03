@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "dependencies": {
+    "@global-bird/contracts": "workspace:*",
     "vue": "^3.5.13"
   },
   "devDependencies": {
@@ -12,7 +13,7 @@
     "vite": "^6.0.7"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host 127.0.0.1 --strictPort",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit"
   }

@@ -130,7 +130,12 @@
 </template>
 
 <script setup lang="ts">
-import type { CellDetail, ComplianceData, MediaItem, SpeciesProfile } from "../core/types";
+import type {
+  CellDetailDto as CellDetail,
+  ComplianceDataDto as ComplianceData,
+  MediaItemDto as MediaItem,
+  SpeciesProfileDto as SpeciesProfile,
+} from "@global-bird/contracts";
 
 defineProps<{
   cellDetail: CellDetail | null;
@@ -321,4 +326,3 @@ dt {
   }
 }
 </style>
-

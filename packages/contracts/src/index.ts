@@ -1,3 +1,2 @@
-export * from "./dto/cells";
+export * from "./dto/api";
 export * from "./errors/api-errors";
-
